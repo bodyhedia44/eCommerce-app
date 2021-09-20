@@ -1,8 +1,9 @@
 const mongoose = require("mongoose")
-const joi = require("joi")
+const joi =require("joi")
+const jwt = require("jsonwebtoken")
 
 
-const User=mongoose.model('auth',mongoose.Schema({
+const userschema = mongoose.Schema({
     fullname:{
         type:String,
         required:true,
@@ -21,18 +22,42 @@ const User=mongoose.model('auth',mongoose.Schema({
         required:true,
         minlength:8,
         maxlength:1024,
+    },
+    isadmin:Boolean,
+    cart:{
+        type:[{}],
+        default:undefined
+    },
+    price:{
+        type:Number
     }
     
-}))
+})
 
-function uservalidation(user) {
-    const schema={
+userschema.methods.gentoken=function () {
+    const token=jwt.sign({id:this._id,admin:this.isadmin},"idkey")
+    return token
+}
+
+
+const User=mongoose.model('auth',userschema)
+
+function signvalidation(user) {
+    const schema=joi.object({
         fullname:joi.string().min(3).max(44).required(),
         email:joi.string().min(3).max(255).required().email(),
         password:joi.string().min(8).max(1024).required(),
-    }
-    return joi.Validate(user,schema)
+    })
+    return schema.validate(user)
+}
+function loginvalidation(user) {
+    const schema=joi.object({
+        email:joi.string().min(3).max(255).required().email(),
+        password:joi.string().min(8).max(1024).required(),
+    })
+    return schema.validate(user)
 }
 
 exports.User=User;
-exports.uservalidation = uservalidation ;
+exports.signvalidation = signvalidation ;
+exports.loginvalidation = loginvalidation ;

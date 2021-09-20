@@ -1,7 +1,19 @@
 const express = require('express')
 const mongoose = require('mongoose');
+const auth= require("./routes/auth")
+const prod= require("./routes/prod")
+const cart= require("./routes/cart")
+const check= require("./routes/checkout")
+const respass= require("./routes/resetpass")
+const bodyparser=require("body-parser")
+const helmet=require("helmet")
+const logger=require("./config/logger")
+const cookie=require("cookie-parser")
+require("dotenv").config();
 
-mongoose.connect('mongodb+srv://body:123456body@cluster.ulqkc.mongodb.net/storedb?retryWrites=true&w=majority', {
+
+
+mongoose.connect(process.env.DB, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
@@ -9,15 +21,22 @@ mongoose.connect('mongodb+srv://body:123456body@cluster.ulqkc.mongodb.net/stored
 }).then((e)=>{
     console.log("done db")
 }).catch((e)=>{
-    console.log("err")
+    console.log(e)
 });
-
+mongoose.set("useCreateIndex",true)
 
 const app = express()
+
+app.use(bodyparser.json())
+app.use(express.json())
+app.use(cookie())
+app.use(helmet())
+app.use("/auth",auth)
+app.use("/cart",cart)
+app.use("/check",check)
+app.use("/",prod)
+app.use("/password-reset",respass)
  
-app.get('/', function (req, res) {
-  res.send('Hello World')
-})
  
 app.listen(2000,()=>{
     console.log("started")
